@@ -147,7 +147,7 @@ def verificar_reto_completado(df_perfil, perfil):
 
 
 def mostrar_reto_semanal(df_perfil, perfil):
-    """Muestra el widget del reto semanal usando componentes nativos de Streamlit"""
+    """Muestra el widget del reto semanal - 100% componentes nativos"""
     
     reto = obtener_reto_semanal(perfil)
     progreso, meta = calcular_progreso_reto(df_perfil, reto)
@@ -158,29 +158,27 @@ def mostrar_reto_semanal(df_perfil, perfil):
     fin_semana = obtener_inicio_semana() + timedelta(days=6)
     dias_restantes = max((fin_semana.date() - hoy.date()).days + 1, 0)
     
-    # Usar container de Streamlit
-    with st.container():
-        # Header del reto
-        if completado:
-            st.success(f"🎯 RETO DE LA SEMANA ✅ ¡COMPLETADO!")
-        else:
-            st.info(f"🎯 RETO DE LA SEMANA • {dias_restantes} días restantes")
+    # Contenedor visual
+    if completado:
+        container = st.success
+        header_text = "🎯 RETO SEMANAL ✅ ¡COMPLETADO!"
+    else:
+        container = st.info
+        header_text = f"🎯 RETO SEMANAL • {dias_restantes} días restantes"
+    
+    # Mostrar el reto
+    with st.container(border=True):
+        st.caption(header_text)
+        st.subheader(reto["nombre"])
+        st.write(reto["descripcion"])
         
-        # Nombre del reto
-        st.markdown(f"### {reto['nombre']}")
-        
-        # Descripción
-        st.write(reto['descripcion'])
-        
-        # Barra de progreso nativa de Streamlit
+        # Barra de progreso
         porcentaje = progreso / meta if meta > 0 else 0
         st.progress(min(porcentaje, 1.0))
         
-        # Texto de progreso
+        # Métricas
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("Progreso", f"{progreso}/{meta}")
+            st.metric(label="Progreso", value=f"{progreso} / {meta}")
         with col2:
-            st.metric("Premio", reto['recompensa'])
-        
-        st.divider()
+            st.metric(label="🎁 Premio", value=reto["recompensa"])
