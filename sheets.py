@@ -30,6 +30,7 @@ def get_df(sheet_name="Catalogo Libros Hijas"):
 
 # --- CAST DE TIPOS (CRÍTICO) ---
     INT_COLS = [
+    "id",
     "edad_min",
     "edad_max",
     "duracion_min",
