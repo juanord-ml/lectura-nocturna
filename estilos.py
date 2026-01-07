@@ -215,79 +215,102 @@ def celebrar_logro(mensaje, tipo="lectura"):
     """, unsafe_allow_html=True)
 
 
-def ruleta_magica(titulos, ganador):
-    """Ruleta con más personalidad y animación"""
+# estilos.py - Nueva versión de ruleta_magica con portadas
+
+def ruleta_magica(titulos, ganador, portada_ganador=None):
+    """Ruleta con animación - ahora acepta portada opcional"""
     
     placeholder = st.empty()
     
-    # Fase 1: Muy rápido con estrellas
+    # Fase 1: Muy rápido
     for _ in range(15):
         titulo_random = random.choice(titulos)
-        placeholder.markdown(f"""
-        <div style="
-            text-align: center; 
-            font-size: 24px;
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            border: 3px solid #ffd1dc;
-            color: #333333;
-        ">
-            ✨ {titulo_random} ✨
-        </div>
-        """, unsafe_allow_html=True)
+        with placeholder.container():
+            st.markdown(f"""
+            <div style='
+                text-align: center; 
+                font-size: 24px;
+                background: white;
+                padding: 20px;
+                border-radius: 15px;
+                border: 3px solid #ffd1dc;
+                color: #333;
+            '>
+                ✨ {titulo_random} ✨
+            </div>
+            """, unsafe_allow_html=True)
         time.sleep(0.05)
     
-    # Fase 2: Más lento con suspenso
+    # Fase 2: Más lento
     for _ in range(8):
         titulo_random = random.choice(titulos)
-        placeholder.markdown(f"""
-        <div style="
-            text-align: center; 
-            font-size: 28px;
-            background: linear-gradient(135deg, #fff0f5, #ffe4ec);
-            padding: 25px;
-            border-radius: 15px;
-            border: 3px solid #ff69b4;
-            color: #333333;
-        ">
-            🌟 {titulo_random} 🌟
-        </div>
-        """, unsafe_allow_html=True)
+        with placeholder.container():
+            st.markdown(f"""
+            <div style='
+                text-align: center; 
+                font-size: 28px;
+                background: linear-gradient(135deg, #fff0f5, #ffe4ec);
+                padding: 25px;
+                border-radius: 15px;
+                border: 3px solid #ff69b4;
+                color: #333;
+            '>
+                🌟 {titulo_random} 🌟
+            </div>
+            """, unsafe_allow_html=True)
         time.sleep(0.15)
     
     # Fase 3: Aún más lento
     for _ in range(5):
         titulo_random = random.choice(titulos)
-        placeholder.markdown(f"""
-        <div style="
-            text-align: center; 
-            font-size: 30px;
-            background: linear-gradient(135deg, #fecfef, #ff9a9e);
-            padding: 25px;
-            border-radius: 15px;
-            color: #333333;
-        ">
-            🎯 {titulo_random} 🎯
-        </div>
-        """, unsafe_allow_html=True)
+        with placeholder.container():
+            st.markdown(f"""
+            <div style='
+                text-align: center; 
+                font-size: 30px;
+                background: linear-gradient(135deg, #fecfef, #ff9a9e);
+                padding: 25px;
+                border-radius: 15px;
+                color: #333;
+            '>
+                🎯 {titulo_random} 🎯
+            </div>
+            """, unsafe_allow_html=True)
         time.sleep(0.25)
     
-    # Fase 4: Revelar ganador
-    placeholder.markdown(f"""
-    <div style="
-        text-align: center;
-        font-size: 32px;
-        background: linear-gradient(135deg, #ff9a9e, #fecfef);
-        border-radius: 20px;
-        padding: 30px;
-        box-shadow: 0 5px 25px rgba(255,105,180,0.4);
-        color: #333333;
-    ">
-        🎉 ¡Esta noche leemos! 🎉<br>
-        <strong style="font-size: 36px; color: #d63384;">📖 {ganador}</strong>
-    </div>
-    """, unsafe_allow_html=True)
+    # Fase 4: Revelar ganador CON PORTADA
+    with placeholder.container():
+        st.markdown(f"""
+        <div style='
+            text-align: center;
+            font-size: 28px;
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 5px 25px rgba(255,105,180,0.4);
+            color: #333;
+        '>
+            🎉 ¡Esta noche leemos! 🎉
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Mostrar portada si existe
+        if portada_ganador and str(portada_ganador).startswith("http"):
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                st.image(portada_ganador, width=200)
+        
+        st.markdown(f"""
+        <div style='
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: #d63384;
+            margin-top: 10px;
+        '>
+            📖 {ganador}
+        </div>
+        """, unsafe_allow_html=True)
 
 # Agregar al final de estilos.py
 
