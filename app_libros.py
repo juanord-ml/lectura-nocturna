@@ -4,6 +4,7 @@ import pandas as pd
 from sheets import get_df
 from datetime import datetime
 from estilos import aplicar_tema_infantil, celebrar_logro, ruleta_magica, mostrar_portada
+from eleccion_libros import seleccionar_libro, obtener_mensaje_modo
 
 # Importar módulos
 from gamificacion import (
@@ -12,7 +13,6 @@ from gamificacion import (
 )
 from perfiles import pagina_perfil, inicializar_avatar_state
 from historial import pagina_historial, mostrar_logros
-from estilos import aplicar_tema_infantil, celebrar_logro, ruleta_magica
 from retos import mostrar_reto_semanal, verificar_reto_completado
 
 # ---------------- CONFIG ----------------
@@ -299,6 +299,7 @@ elif pagina == "👤 Mi Perfil":
 elif pagina == "🏆 Logros":
     st.title("🏆 Mis Logros")
     mostrar_logros(df[df["ultima_lectora"] == perfil].copy())
+
 
 
 
