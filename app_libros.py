@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from sheets import get_df
 import random
 import time
 from datetime import datetime
@@ -19,7 +20,7 @@ PERFILES = {
 }
 
 # ---------------- DATA ----------------
-df = pd.read_csv("catalogo_libros.csv", parse_dates=["ultima_lectura"])
+df, sheet = get_df()
 
 st.title("📖 Noche de Lectura")
 
@@ -91,7 +92,11 @@ if st.button("🎡 Girar la ruleta", use_container_width=True):
         with col1:
             if st.button("⭐ Favorito"):
                 df.loc[df["id"] == libro["id"], "favorito"] = True
-                df.to_csv("catalogo_libros.csv", index=False)
+                sheet.update(
+                    [df.columns.values.tolist()] +
+                    df.astype(str).values.tolist()
+                )
+
                 st.toast("Favorito guardado")
 
         with col2:
@@ -100,7 +105,10 @@ if st.button("🎡 Girar la ruleta", use_container_width=True):
                 df.loc[idx, "ultima_lectura"] = datetime.now()
                 df.loc[idx, "veces_leido"] += 1
                 df.loc[idx, "ultima_lectora"] = perfil
-                df.to_csv("catalogo_libros.csv", index=False)
+                sheet.update(
+                    [df.columns.values.tolist()] +
+                    df.astype(str).values.tolist()
+                )
                 st.toast("Lectura registrada")
 
 # ---------------- ESTADÍSTICAS ----------------
@@ -130,3 +138,4 @@ for hija, icono in PERFILES.items():
         .head(5),
         hide_index=True
     )
+
