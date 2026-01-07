@@ -288,3 +288,26 @@ def ruleta_magica(titulos, ganador):
         <strong style="font-size: 36px; color: #d63384;">📖 {ganador}</strong>
     </div>
     """, unsafe_allow_html=True)
+
+# Agregar al final de estilos.py
+
+def mostrar_portada(url, ancho=200):
+    """Muestra la portada de un libro"""
+    if url and str(url).startswith("http"):
+        st.image(url, width=ancho)
+    else:
+        # Placeholder si no hay imagen
+        st.markdown(f"""
+        <div style='
+            width: {ancho}px;
+            height: {int(ancho * 1.4)}px;
+            background: linear-gradient(135deg, #ff69b4, #ffd1dc);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        '>
+            <span style='font-size: 60px;'>📖</span>
+        </div>
+        """, unsafe_allow_html=True)
