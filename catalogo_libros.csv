@@ -1,0 +1,21 @@
+id,titulo,idioma,tipo,edad_min,edad_max,duracion_min,interactivo,coleccion,ubicacion,ultima_lectura,veces_leido,favorito,activa,ultima_lectora
+1,El Principito,ES,cuento,6,10,15,FALSE,Clásicos,Repisa madera media,,0,FALSE,TRUE
+2,Buen viaje Pequeño Erizo,ES,álbum,3,7,8,FALSE,,Repisa madera media,,0,FALSE,TRUE
+3,Un gran día para el Pequeño Zorro,ES,álbum,3,7,8,FALSE,,Repisa madera media,,0,FALSE,TRUE
+4,Los viajes de Gulliver (infantil),ES,cuento,6,10,15,FALSE,Clásicos,Repisa madera media,,0,FALSE,TRUE
+5,El gran libro juego de los monstruos,ES,juego,4,8,10,TRUE,,Canasto libros,,0,FALSE,TRUE
+6,¿Qué le pasa a mi cabello?,ES,álbum,3,6,7,FALSE,,Canasto libros,,0,FALSE,TRUE
+7,Adivina cuánto te quiero,ES,álbum,2,6,5,FALSE,,Canasto libros,,0,TRUE,TRUE
+8,Buenas noches,ES,álbum,2,5,5,FALSE,,Canasto libros,,0,FALSE,TRUE
+9,Elmer,ES,álbum,3,7,8,FALSE,,Canasto libros,,0,FALSE,TRUE
+10,Pinocho (adaptado),ES,cuento,5,9,12,FALSE,Clásicos,Canasto libros,,0,FALSE,TRUE
+11,Pete the Cat Snow Daze,EN,cuento,4,7,7,FALSE,Pete the Cat,Repisa verde,,0,FALSE,TRUE
+12,Pete the Cat Groovy,EN,cuento,4,7,7,FALSE,Pete the Cat,Repisa verde,,0,FALSE,TRUE
+13,The Snowman,EN,álbum,3,7,6,FALSE,,Repisa verde,,0,FALSE,TRUE
+14,Little Blue and Little Yellow,BI,álbum,3,6,6,FALSE,,Repisa verde,,0,TRUE,TRUE
+15,Grisela,ES,álbum,4,7,8,FALSE,,Canasto libros,,0,FALSE,TRUE
+16,Pega y aprende adhesivos,ES,actividad,3,6,10,TRUE,,Canasto actividades,,0,FALSE,TRUE
+17,Libro 40 solapas animales,ES,juego,2,5,8,TRUE,,Canasto actividades,,0,FALSE,TRUE
+18,Atlas mundial infantil,ES,álbum,5,9,10,FALSE,,Repisa mimbre,,0,FALSE,TRUE
+19,Cuentos clásicos recopilación,ES,cuento,5,9,12,FALSE,Clásicos,Repisa mimbre,,0,FALSE,TRUE
+20,Libro de dinosaurios ilustrado,ES,álbum,3,7,8,FALSE,,Repisa mimbre,,0,FALSE,TRUE
