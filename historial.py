@@ -75,7 +75,7 @@ def mostrar_calendario_lecturas(df_perfil, mes=None, año=None):
 
 
 def mostrar_lista_lecturas(df_perfil):
-    """Muestra lista cronológica de lecturas"""
+    """Muestra lista cronológica de lecturas con portadas"""
     if df_perfil.empty:
         st.info("No hay lecturas registradas aún.")
         return
@@ -87,21 +87,19 @@ def mostrar_lista_lecturas(df_perfil):
         fecha = fecha_dt.strftime("%d %b %Y") if pd.notna(fecha_dt) else "Sin fecha"
         fav = "⭐" if libro["favorito"] else ""
         
-        # CORREGIDO: colores de texto más oscuros
-        st.markdown(f"""
-        <div style="
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 10px 0;
-            border-left: 4px solid #ff69b4;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            color: #333333;
-        ">
-            <strong style="color: #d63384;">{libro['titulo']}</strong> {fav}<br>
-            <small style="color: #666666;">📅 {fecha} · ⏱️ {libro['duracion_min']} min · 📍 {libro['ubicacion']} · 🔄 {libro['veces_leido']}x</small>
-        </div>
-        """, unsafe_allow_html=True)
+        with st.container(border=True):
+            col_img, col_info = st.columns([1, 3])
+            
+            with col_img:
+                portada_url = libro.get("portada_url", "")
+                if portada_url and str(portada_url).startswith("http"):
+                    st.image(portada_url, width=80)
+                else:
+                    st.markdown("<div style='font-size: 50px; text-align: center;'>📖</div>", unsafe_allow_html=True)
+            
+            with col_info:
+                st.markdown(f"**{libro['titulo']}** {fav}")
+                st.caption(f"📅 {fecha} · ⏱️ {libro['duracion_min']} min · 🔄 {libro['veces_leido']}x")
 
 
 def mostrar_logros(df_perfil):
