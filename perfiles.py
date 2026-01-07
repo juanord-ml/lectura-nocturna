@@ -55,7 +55,7 @@ def pagina_perfil(perfil, df_perfil):
         st.session_state.avatares[perfil]["avatar"] = nuevo_avatar
         st.session_state.avatares[perfil]["fondo"] = nuevo_fondo
         
-        # Avatar grande visual
+        # Avatar grande visual - CORREGIDO COLOR
         st.markdown(f"""
         <div style="
             font-size: 80px; 
@@ -79,6 +79,7 @@ def pagina_perfil(perfil, df_perfil):
         
         nivel = obtener_nivel(total_leidos)
         
+        # CORREGIDO: color de texto más oscuro
         st.markdown(f"""
         <div style="
             background: linear-gradient(135deg, #fff9c4, #ffecb3);
@@ -88,7 +89,7 @@ def pagina_perfil(perfil, df_perfil):
             margin-bottom: 20px;
         ">
             <span style="font-size: 50px;">{nivel['icono']}</span>
-            <h2 style="margin: 10px 0;">Nivel {nivel['nivel']}: {nivel['nombre']}</h2>
+            <h2 style="margin: 10px 0; color: #d63384 !important;">Nivel {nivel['nivel']}: {nivel['nombre']}</h2>
         </div>
         """, unsafe_allow_html=True)
         
