@@ -7,6 +7,7 @@ DIAS_NO_REPETIR = 5
 
 def seleccionar_libro(
     df,
+    perfil,
     edad_nina,
     max_duracion=None,
     permitir_interactivo=True,
@@ -14,17 +15,15 @@ def seleccionar_libro(
     solo_nuevos=False
 ):
     """
-    Selecciona un libro basado en criterios.
-    
-    Parámetros:
-    - df: DataFrame con los libros
-    - edad_nina: Edad de la niña
-    - max_duracion: Duración máxima en minutos (None = sin límite)
-    - permitir_interactivo: Si permite libros interactivos
-    - solo_favoritos: Solo mostrar libros marcados como favoritos
-    - solo_nuevos: Solo mostrar libros nunca leídos
+    Selecciona un libro basado en criterios y perfil.
     """
     hoy = datetime.now()
+    
+    # Columnas específicas del perfil
+    perfil_lower = perfil.lower()
+    col_favorito = f"favorito_{perfil_lower}"
+    col_veces = f"veces_{perfil_lower}"
+    col_ultima = f"ultima_{perfil_lower}"
 
     # Filtro base: activos y edad apropiada
     candidatos = df[
@@ -41,20 +40,19 @@ def seleccionar_libro(
     if not permitir_interactivo:
         candidatos = candidatos[candidatos["interactivo"] == False]
     
-    # Filtro: solo favoritos
+    # Filtro: solo favoritos DEL PERFIL
     if solo_favoritos:
-        candidatos = candidatos[candidatos["favorito"] == True]
-        # Para favoritos, no aplicamos el filtro de días
+        candidatos = candidatos[candidatos[col_favorito] == True]
     
-    # Filtro: solo libros nuevos (nunca leídos)
+    # Filtro: solo libros nuevos (nunca leídos POR ESTE PERFIL)
     elif solo_nuevos:
-        candidatos = candidatos[candidatos["veces_leido"] == 0]
+        candidatos = candidatos[candidatos[col_veces] == 0]
     
-    # Filtro normal: no repetir en X días
+    # Filtro normal: no repetir en X días PARA ESTE PERFIL
     else:
         candidatos = candidatos[
-            (candidatos["ultima_lectura"].isna()) |
-            (candidatos["ultima_lectura"] < hoy - timedelta(days=DIAS_NO_REPETIR))
+            (candidatos[col_ultima].isna()) |
+            (candidatos[col_ultima] < hoy - timedelta(days=DIAS_NO_REPETIR))
         ]
 
     if candidatos.empty:
@@ -64,12 +62,12 @@ def seleccionar_libro(
         """Calcula el peso/probabilidad de selección"""
         w = 1.0
         
-        # Favoritos tienen más probabilidad (pero no en modo favoritos)
-        if not solo_favoritos and row["favorito"]:
+        # Favoritos tienen más probabilidad
+        if not solo_favoritos and row[col_favorito]:
             w *= 1.5
         
-        # Libros nuevos tienen más probabilidad (pero no en modo nuevos)
-        if not solo_nuevos and row["veces_leido"] == 0:
+        # Libros nuevos tienen más probabilidad
+        if not solo_nuevos and row[col_veces] == 0:
             w *= 1.4
         
         # Libros interactivos ligeramente más probables
@@ -77,7 +75,7 @@ def seleccionar_libro(
             w *= 1.2
         
         # Libros poco leídos tienen más probabilidad
-        if row["veces_leido"] > 0 and row["veces_leido"] < 3:
+        if row[col_veces] > 0 and row[col_veces] < 3:
             w *= 1.1
         
         return w
