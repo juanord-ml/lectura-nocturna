@@ -71,6 +71,9 @@ RETOS_DISPONIBLES = [
     },
 ]
 
+# Diccionario para búsqueda rápida
+RETOS_POR_ID = {r["id"]: r for r in RETOS_DISPONIBLES}
+
 
 def obtener_inicio_semana():
     """Obtiene el lunes de la semana actual"""
@@ -79,8 +82,57 @@ def obtener_inicio_semana():
     return inicio.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
-def obtener_reto_semanal(perfil):
-    """Obtiene o genera el reto de la semana para un perfil"""
+def obtener_reto_semanal_persistente(perfil, sheet):
+    """
+    Obtiene el reto de la semana desde Google Sheets.
+    Si no existe o es de otra semana, genera uno nuevo y lo guarda.
+    """
+    
+    inicio_semana = obtener_inicio_semana().strftime("%Y-%m-%d")
+    
+    # Nombres de columnas según perfil
+    col_reto = f"reto_{perfil.lower()}"
+    col_semana = f"reto_{perfil.lower()}_semana"
+    
+    try:
+        # Leer la configuración desde la fila 2 (después del header)
+        # Usaremos celdas específicas para guardar los retos
+        # Buscar en qué columna están
+        headers = sheet.row_values(1)
+        
+        if col_reto in headers and col_semana in headers:
+            col_reto_idx = headers.index(col_reto) + 1
+            col_semana_idx = headers.index(col_semana) + 1
+            
+            # Leer valores actuales (fila 2)
+            reto_actual = sheet.cell(2, col_reto_idx).value
+            semana_actual = sheet.cell(2, col_semana_idx).value
+            
+            # Verificar si es la misma semana
+            if semana_actual == inicio_semana and reto_actual in RETOS_POR_ID:
+                # Devolver el reto existente
+                return RETOS_POR_ID[reto_actual]
+            
+            # Es otra semana o no hay reto, generar nuevo
+            nuevo_reto = random.choice(RETOS_DISPONIBLES)
+            
+            # Guardar en Google Sheets
+            sheet.update_cell(2, col_reto_idx, nuevo_reto["id"])
+            sheet.update_cell(2, col_semana_idx, inicio_semana)
+            
+            return nuevo_reto
+        else:
+            # Las columnas no existen, usar método de session_state como fallback
+            return obtener_reto_semanal_fallback(perfil)
+            
+    except Exception as e:
+        # Si hay error, usar fallback
+        st.warning(f"Usando reto temporal: {e}")
+        return obtener_reto_semanal_fallback(perfil)
+
+
+def obtener_reto_semanal_fallback(perfil):
+    """Fallback usando session_state (se pierde al cerrar)"""
     
     key = f"reto_semanal_{perfil}"
     key_fecha = f"reto_fecha_{perfil}"
@@ -130,10 +182,9 @@ def calcular_progreso_reto(df_perfil, reto):
     return min(progreso, reto["meta"]), reto["meta"]
 
 
-def verificar_reto_completado(df_perfil, perfil):
+def verificar_reto_completado(df_perfil, perfil, reto):
     """Verifica si el reto se completó y retorna True si es nuevo"""
     
-    reto = obtener_reto_semanal(perfil)
     progreso, meta = calcular_progreso_reto(df_perfil, reto)
     
     key_completado = f"reto_completado_{perfil}"
@@ -146,27 +197,36 @@ def verificar_reto_completado(df_perfil, perfil):
     return False, None
 
 
-def mostrar_reto_semanal(df_perfil, perfil):
-    """Muestra el widget del reto semanal - 100% componentes nativos"""
+def mostrar_reto_semanal(df_perfil, perfil, sheet=None):
+    """Muestra el widget del reto semanal"""
     
-    reto = obtener_reto_semanal(perfil)
+    # Obtener reto (persistente si hay sheet, fallback si no)
+    if sheet:
+        reto = obtener_reto_semanal_persistente(perfil, sheet)
+    else:
+        reto = obtener_reto_semanal_fallback(perfil)
+    
+    # Guardar en session_state para uso posterior
+    st.session_state[f"reto_actual_{perfil}"] = reto
+    
     progreso, meta = calcular_progreso_reto(df_perfil, reto)
     completado = progreso >= meta
+    
+    # Marcar como completado si es necesario
+    if completado:
+        st.session_state[f"reto_completado_{perfil}"] = True
     
     # Calcular días restantes
     hoy = datetime.now()
     fin_semana = obtener_inicio_semana() + timedelta(days=6)
     dias_restantes = max((fin_semana.date() - hoy.date()).days + 1, 0)
     
-    # Contenedor visual
+    # Mostrar el reto
     if completado:
-        container = st.success
         header_text = "🎯 RETO SEMANAL ✅ ¡COMPLETADO!"
     else:
-        container = st.info
         header_text = f"🎯 RETO SEMANAL • {dias_restantes} días restantes"
     
-    # Mostrar el reto
     with st.container(border=True):
         st.caption(header_text)
         st.subheader(reto["nombre"])
@@ -182,3 +242,5 @@ def mostrar_reto_semanal(df_perfil, perfil):
             st.metric(label="Progreso", value=f"{progreso} / {meta}")
         with col2:
             st.metric(label="🎁 Premio", value=reto["recompensa"])
+    
+    return reto
