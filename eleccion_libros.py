@@ -1,24 +1,21 @@
-import pandas as pd
 import random
 from datetime import datetime, timedelta
 
-# cargar data
-libros = pd.read_csv("catalogo_libros.csv", parse_dates=["ultima_lectura"])
-
-# config
 DIAS_NO_REPETIR = 5
 
+
 def seleccionar_libro(
+    df,
     edad_nina,
     max_duracion=None,
     permitir_interactivo=True
 ):
     hoy = datetime.now()
 
-    candidatos = libros[
-        (libros["activa"] == True) &
-        (libros["edad_min"] <= edad_nina) &
-        (libros["edad_max"] >= edad_nina)
+    candidatos = df[
+        (df["activa"] == True) &
+        (df["edad_min"] <= edad_nina) &
+        (df["edad_max"] >= edad_nina)
     ]
 
     if max_duracion:
@@ -54,19 +51,3 @@ def seleccionar_libro(
     )[0]
 
     return candidatos.loc[elegido]
-
-if __name__ == "__main__":
-    libro = seleccionar_libro(
-        edad_nina=5,
-        max_duracion=10,
-        permitir_interactivo=True
-    )
-
-    if libro is None:
-        print("No hay libros elegibles hoy.")
-    else:
-        print("\n📖 Libro seleccionado:\n")
-        print(f"Título: {libro['titulo']}")
-        print(f"Edad: {libro['edad_min']}–{libro['edad_max']}")
-        print(f"Duración: {libro['duracion_min']} min")
-        print(f"Ubicación: {libro['ubicacion']}")
