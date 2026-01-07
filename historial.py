@@ -87,6 +87,7 @@ def mostrar_lista_lecturas(df_perfil):
         fecha = fecha_dt.strftime("%d %b %Y") if pd.notna(fecha_dt) else "Sin fecha"
         fav = "⭐" if libro["favorito"] else ""
         
+        # CORREGIDO: colores de texto más oscuros
         st.markdown(f"""
         <div style="
             background: white;
@@ -95,9 +96,10 @@ def mostrar_lista_lecturas(df_perfil):
             margin: 10px 0;
             border-left: 4px solid #ff69b4;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            color: #333333;
         ">
-            <strong>{libro['titulo']}</strong> {fav}<br>
-            <small>📅 {fecha} · ⏱️ {libro['duracion_min']} min · 📍 {libro['ubicacion']} · 🔄 {libro['veces_leido']}x</small>
+            <strong style="color: #d63384;">{libro['titulo']}</strong> {fav}<br>
+            <small style="color: #666666;">📅 {fecha} · ⏱️ {libro['duracion_min']} min · 📍 {libro['ubicacion']} · 🔄 {libro['veces_leido']}x</small>
         </div>
         """, unsafe_allow_html=True)
 
@@ -112,6 +114,7 @@ def mostrar_logros(df_perfil):
     for i, (key, logro) in enumerate(LOGROS.items()):
         with cols[i % 3]:
             if key in desbloqueados:
+                # CORREGIDO: colores de texto más oscuros
                 st.markdown(f"""
                 <div style="
                     text-align: center;
@@ -122,8 +125,8 @@ def mostrar_logros(df_perfil):
                     box-shadow: 0 3px 10px rgba(255,193,7,0.3);
                 ">
                     <span style="font-size: 40px;">{logro['icono']}</span><br>
-                    <strong>{logro['nombre']}</strong><br>
-                    <small>{logro['desc']}</small>
+                    <strong style="color: #d63384;">{logro['nombre']}</strong><br>
+                    <small style="color: #666666;">{logro['desc']}</small>
                 </div>
                 """, unsafe_allow_html=True)
             else:
@@ -137,8 +140,8 @@ def mostrar_logros(df_perfil):
                     opacity: 0.6;
                 ">
                     <span style="font-size: 40px;">🔒</span><br>
-                    <strong>???</strong><br>
-                    <small>{logro['desc']}</small>
+                    <strong style="color: #666666;">???</strong><br>
+                    <small style="color: #888888;">{logro['desc']}</small>
                 </div>
                 """, unsafe_allow_html=True)
 
