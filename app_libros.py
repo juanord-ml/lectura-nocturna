@@ -1,12 +1,11 @@
 # app_libros.py
 import streamlit as st
 import pandas as pd
-from sheets import get_df
+from sheets import get_df, get_columnas_perfil
 from datetime import datetime
-from estilos import aplicar_tema_infantil, celebrar_logro, ruleta_magica, mostrar_portada
-from eleccion_libros import seleccionar_libro, obtener_mensaje_modo
 
-# Importar módulos
+from eleccion_libros import seleccionar_libro, obtener_mensaje_modo
+from estilos import aplicar_tema_infantil, ruleta_magica, mostrar_portada
 from gamificacion import (
     obtener_nivel, calcular_racha, obtener_logros_desbloqueados,
     verificar_nuevo_logro, LOGROS
@@ -46,6 +45,20 @@ PERFILES = {
 def cargar_datos():
     df, _ = get_df()
     return df
+
+
+def obtener_df_perfil(df, perfil):
+    """Obtiene datos filtrados y renombrados para un perfil"""
+    cols = get_columnas_perfil(perfil)
+    
+    # Crear copia con columnas renombradas para compatibilidad
+    df_perfil = df.copy()
+    df_perfil["favorito"] = df_perfil[cols["favorito"]]
+    df_perfil["veces_leido"] = df_perfil[cols["veces"]]
+    df_perfil["ultima_lectura"] = df_perfil[cols["ultima"]]
+    
+    # Filtrar solo libros que este perfil ha leído
+    return df_perfil[df_perfil["veces_leido"] > 0]
 
 
 # ---------------- WIDGET DE RACHA ----------------
@@ -108,7 +121,7 @@ with st.sidebar:
     
     # Mini-stats en sidebar
     df_sidebar = cargar_datos()
-    df_perfil_sidebar = df_sidebar[df_sidebar["ultima_lectora"] == perfil]
+    df_perfil_sidebar = obtener_df_perfil(df_sidebar, perfil)
     
     if not df_perfil_sidebar.empty:
         nivel = obtener_nivel(df_perfil_sidebar["veces_leido"].sum())
@@ -129,23 +142,23 @@ def pagina_ruleta():
     st.title("📖 Noche de Lectura")
     
     df = cargar_datos()
-    df_perfil = df[df["ultima_lectora"] == perfil].copy()
+    df_perfil = obtener_df_perfil(df, perfil)
+    cols = get_columnas_perfil(perfil)
     
     # Widget de racha
     mostrar_widget_racha(df_perfil, perfil)
     
-    # Reto semanal (con persistencia)
+    # Reto semanal
     _, sheet = get_df()
     reto = mostrar_reto_semanal(df_perfil, perfil, sheet)
     
-    # Celebración de reto completado
+    # Celebraciones
     if st.session_state.reto_recien_completado:
         reto_info = st.session_state.reto_recien_completado
         st.balloons()
         st.success(f"🎉 ¡Completaste el reto: {reto_info['nombre']}! Premio: {reto_info['recompensa']}")
         st.session_state.reto_recien_completado = None
     
-    # Nuevo logro
     if st.session_state.nuevo_logro:
         logro = LOGROS[st.session_state.nuevo_logro]
         st.balloons()
@@ -165,7 +178,7 @@ def pagina_ruleta():
     with col_modo:
         modo = st.radio(
             "📚 Modo",
-            ["🎡 Sorpresa", "🌙 Cortito", "⭐ Favoritos", "🆕 Nuevos"],
+            ["🎡 Sorpresa", "🌙 Cortito", "⭐ Favoritos", "🆕 Nuevos", "📋 Elegir"],
             horizontal=True
         )
     
@@ -176,54 +189,95 @@ def pagina_ruleta():
         max_duracion, solo_favoritos, solo_nuevos, modo_key = None, True, False, "favoritos"
     elif modo == "🆕 Nuevos":
         max_duracion, solo_favoritos, solo_nuevos, modo_key = None, False, True, "nuevos"
+    elif modo == "📋 Elegir":
+        # MODO ELEGIR MANUALMENTE
+        max_duracion, solo_favoritos, solo_nuevos, modo_key = None, False, False, "elegir"
     else:
         max_duracion, solo_favoritos, solo_nuevos, modo_key = None, False, False, "default"
     
-    # Botón ruleta
-    st.markdown("")
-    if st.button("🎡 ¡Girar la ruleta!", use_container_width=True):
-        cargar_datos.clear()
-        df = cargar_datos()
+    # --- MODO ELEGIR MANUALMENTE ---
+    if modo == "📋 Elegir":
+        st.markdown("")
+        st.subheader("📚 Elige un libro")
         
-        libro = seleccionar_libro(
-            df, edad_nina=edad, max_duracion=max_duracion,
-            permitir_interactivo=True, solo_favoritos=solo_favoritos,
-            solo_nuevos=solo_nuevos
-        )
+        # Filtrar libros activos y de edad apropiada
+        df_elegibles = df[
+            (df["activa"] == True) &
+            (df["edad_min"] <= edad) &
+            (df["edad_max"] >= edad)
+        ].sort_values("titulo")
         
-        if libro is None:
-            st.session_state.libro_actual = None
-            mensaje = obtener_mensaje_modo(modo_key, False)
-            st.warning(mensaje)
+        if df_elegibles.empty:
+            st.warning("No hay libros disponibles para esta edad.")
         else:
-            st.session_state.libro_actual = libro.to_dict()
+            # Selector de libro
+            opciones = df_elegibles["titulo"].tolist()
+            libro_elegido = st.selectbox(
+                "Selecciona el libro:",
+                opciones,
+                key="selector_libro_manual"
+            )
             
-            df_filtrado = df[
-                (df["edad_min"] <= edad) & (df["edad_max"] >= edad) & (df["activa"] == True)
-            ]
-            if solo_favoritos:
-                df_filtrado = df_filtrado[df_filtrado["favorito"] == True]
-            elif solo_nuevos:
-                df_filtrado = df_filtrado[df_filtrado["veces_leido"] == 0]
-            elif max_duracion:
-                df_filtrado = df_filtrado[df_filtrado["duracion_min"] <= max_duracion]
-            
-            titulos = df_filtrado["titulo"].tolist()
-            if len(titulos) < 3:
-                titulos = titulos * 3
-            
-            # Al girar la ruleta:
-            ruleta_magica(titulos, libro["titulo"])
-            st.balloons()
+            if st.button("📖 ¡Este quiero leer!", use_container_width=True):
+                libro_row = df_elegibles[df_elegibles["titulo"] == libro_elegido].iloc[0]
+                st.session_state.libro_actual = libro_row.to_dict()
+                # Agregar datos del perfil al libro
+                st.session_state.libro_actual["favorito"] = libro_row[cols["favorito"]]
+                st.session_state.libro_actual["veces_leido"] = libro_row[cols["veces"]]
+                st.balloons()
     
-    # Mostrar libro seleccionado
+    # --- MODO RULETA ---
+    else:
+        st.markdown("")
+        if st.button("🎡 ¡Girar la ruleta!", use_container_width=True):
+            cargar_datos.clear()
+            df = cargar_datos()
+            
+            libro = seleccionar_libro(
+                df, 
+                perfil=perfil,  # NUEVO: pasar perfil
+                edad_nina=edad, 
+                max_duracion=max_duracion,
+                permitir_interactivo=True, 
+                solo_favoritos=solo_favoritos,
+                solo_nuevos=solo_nuevos
+            )
+            
+            if libro is None:
+                st.session_state.libro_actual = None
+                mensaje = obtener_mensaje_modo(modo_key, False)
+                st.warning(mensaje)
+            else:
+                libro_dict = libro.to_dict()
+                # Agregar datos del perfil al libro
+                libro_dict["favorito"] = libro[cols["favorito"]]
+                libro_dict["veces_leido"] = libro[cols["veces"]]
+                st.session_state.libro_actual = libro_dict
+                
+                df_filtrado = df[
+                    (df["edad_min"] <= edad) & (df["edad_max"] >= edad) & (df["activa"] == True)
+                ]
+                if solo_favoritos:
+                    df_filtrado = df_filtrado[df_filtrado[cols["favorito"]] == True]
+                elif solo_nuevos:
+                    df_filtrado = df_filtrado[df_filtrado[cols["veces"]] == 0]
+                elif max_duracion:
+                    df_filtrado = df_filtrado[df_filtrado["duracion_min"] <= max_duracion]
+                
+                titulos = df_filtrado["titulo"].tolist()
+                if len(titulos) < 3:
+                    titulos = titulos * 3
+                
+                ruleta_magica(titulos, libro["titulo"])
+                st.balloons()
+    
+    # --- MOSTRAR LIBRO SELECCIONADO ---
     if st.session_state.libro_actual is not None:
         libro = st.session_state.libro_actual
         es_favorito = libro.get("favorito", False)
         estrella = "⭐" if es_favorito else ""
         
         with st.container(border=True):
-            # Portada centrada
             col_izq, col_centro, col_der = st.columns([1, 2, 1])
             with col_centro:
                 portada_url = libro.get("portada_url", "")
@@ -242,7 +296,8 @@ def pagina_ruleta():
             btn_text = "💖 ¡Ya es favorito!" if es_favorito else "⭐ ¡Es mi favorito!"
             if st.button(btn_text, key="btn_fav", use_container_width=True, disabled=es_favorito):
                 df_fresh, sheet = get_df()
-                df_fresh.loc[df_fresh["id"] == libro["id"], "favorito"] = True
+                # Actualizar columna del perfil
+                df_fresh.loc[df_fresh["id"] == libro["id"], cols["favorito"]] = True
                 sheet.update([df_fresh.columns.values.tolist()] + df_fresh.astype(str).values.tolist())
                 cargar_datos.clear()
                 st.session_state.libro_actual["favorito"] = True
@@ -251,25 +306,28 @@ def pagina_ruleta():
         
         with col2:
             if st.button("✅ ¡Lo leímos!", key="btn_leido", use_container_width=True):
-                df_antes, _ = get_df()
-                df_perfil_antes = df_antes[df_antes["ultima_lectora"] == perfil].copy()
+                # Guardar estado anterior
+                df_antes = cargar_datos()
+                df_perfil_antes = obtener_df_perfil(df_antes, perfil)
                 
+                # Actualizar
                 df_fresh, sheet = get_df()
                 idx = df_fresh["id"] == libro["id"]
-                df_fresh.loc[idx, "ultima_lectura"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                df_fresh.loc[idx, "veces_leido"] = df_fresh.loc[idx, "veces_leido"] + 1
-                df_fresh.loc[idx, "ultima_lectora"] = perfil
+                df_fresh.loc[idx, cols["ultima"]] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                df_fresh.loc[idx, cols["veces"]] = df_fresh.loc[idx, cols["veces"]] + 1
                 sheet.update([df_fresh.columns.values.tolist()] + df_fresh.astype(str).values.tolist())
                 
                 cargar_datos.clear()
                 
-                df_despues, _ = get_df()
-                df_perfil_despues = df_despues[df_despues["ultima_lectora"] == perfil].copy()
+                # Verificar logros
+                df_despues = cargar_datos()
+                df_perfil_despues = obtener_df_perfil(df_despues, perfil)
                 
                 nuevo_logro = verificar_nuevo_logro(df_perfil_antes, df_perfil_despues)
                 if nuevo_logro:
                     st.session_state.nuevo_logro = nuevo_logro
                 
+                # Verificar reto
                 reto_actual = st.session_state.get(f"reto_actual_{perfil}")
                 if reto_actual:
                     reto_nuevo, reto_info = verificar_reto_completado(df_perfil_despues, perfil, reto_actual)
@@ -292,14 +350,12 @@ df = cargar_datos()
 if pagina == "🎡 Ruleta":
     pagina_ruleta()
 elif pagina == "📖 Mi Diario":
-    pagina_historial(df, perfil)
+    df_perfil = obtener_df_perfil(df, perfil)
+    pagina_historial(df_perfil, perfil)
 elif pagina == "👤 Mi Perfil":
-    pagina_perfil(perfil, df[df["ultima_lectora"] == perfil].copy())
+    df_perfil = obtener_df_perfil(df, perfil)
+    pagina_perfil(perfil, df_perfil)
 elif pagina == "🏆 Logros":
     st.title("🏆 Mis Logros")
-    mostrar_logros(df[df["ultima_lectora"] == perfil].copy())
-
-
-
-
-
+    df_perfil = obtener_df_perfil(df, perfil)
+    mostrar_logros(df_perfil)
