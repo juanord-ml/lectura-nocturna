@@ -1,3 +1,4 @@
+# sheets.py
 import gspread
 import pandas as pd
 import streamlit as st
@@ -28,19 +29,26 @@ def get_df(sheet_name="Catalogo Libros Hijas"):
     data = sheet.get_all_records()
     df = pd.DataFrame(data)
 
-# --- CAST DE TIPOS (CRÍTICO) ---
+    # --- CAST DE TIPOS ---
     INT_COLS = [
-    "id",
-    "edad_min",
-    "edad_max",
-    "duracion_min",
-    "veces_leido"
+        "id",
+        "edad_min",
+        "edad_max",
+        "duracion_min",
+        "veces_clara",      # NUEVO
+        "veces_gracia"      # NUEVO
     ]
 
     BOOL_COLS = [
-    "interactivo",
-    "favorito",
-    "activa"
+        "interactivo",
+        "activa",
+        "favorito_clara",   # NUEVO
+        "favorito_gracia"   # NUEVO
+    ]
+
+    DATE_COLS = [
+        "ultima_clara",     # NUEVO
+        "ultima_gracia"     # NUEVO
     ]
 
     for col in INT_COLS:
@@ -56,12 +64,18 @@ def get_df(sheet_name="Catalogo Libros Hijas"):
                 .isin(["TRUE", "1", "SI", "YES"])
             )
 
-
-    # normalizaciones defensivas
-    if "ultima_lectura" in df.columns:
-        df["ultima_lectura"] = pd.to_datetime(
-            df["ultima_lectura"],
-            errors="coerce"
-        )
+    for col in DATE_COLS:
+        if col in df.columns:
+            df[col] = pd.to_datetime(df[col], errors="coerce")
 
     return df, sheet
+
+
+def get_columnas_perfil(perfil):
+    """Retorna los nombres de columnas para un perfil específico"""
+    perfil_lower = perfil.lower()
+    return {
+        "favorito": f"favorito_{perfil_lower}",
+        "veces": f"veces_{perfil_lower}",
+        "ultima": f"ultima_{perfil_lower}"
+    }
