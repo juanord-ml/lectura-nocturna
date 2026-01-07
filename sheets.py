@@ -28,6 +28,34 @@ def get_df(sheet_name="Catalogo Libros Hijas"):
     data = sheet.get_all_records()
     df = pd.DataFrame(data)
 
+# --- CAST DE TIPOS (CRÍTICO) ---
+    INT_COLS = [
+    "edad_min",
+    "edad_max",
+    "duracion_min",
+    "veces_leido"
+    ]
+
+    BOOL_COLS = [
+    "interactivo",
+    "favorito",
+    "activa"
+    ]
+
+    for col in INT_COLS:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
+
+    for col in BOOL_COLS:
+        if col in df.columns:
+            df[col] = (
+                df[col]
+                .astype(str)
+                .str.upper()
+                .isin(["TRUE", "1", "SI", "YES"])
+            )
+
+
     # normalizaciones defensivas
     if "ultima_lectura" in df.columns:
         df["ultima_lectura"] = pd.to_datetime(
