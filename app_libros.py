@@ -6,6 +6,9 @@ import time
 from datetime import datetime
 from eleccion_libros import seleccionar_libro
 
+if "libro_actual" not in st.session_state:
+    st.session_state.libro_actual = None
+
 # ---------------- CONFIG ----------------
 st.set_page_config(
     page_title="📖 Lectura de Hoy",
@@ -61,10 +64,12 @@ def ruleta_visual(titulos, ganador):
 if st.button("🎡 Girar la ruleta", use_container_width=True):
 
     libro = seleccionar_libro(
+        df,
         edad_nina=edad,
         max_duracion=max_duracion,
         permitir_interactivo=True
     )
+    st.session_state.libro_actual = libro
 
     if libro is None:
         st.warning("No hay libros elegibles hoy.")
@@ -138,4 +143,5 @@ for hija, icono in PERFILES.items():
         .head(5),
         hide_index=True
     )
+
 
