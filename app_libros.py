@@ -213,8 +213,7 @@ def pagina_ruleta():
                 titulos = titulos * 3
             
             # Al girar la ruleta:
-            portada = libro.get("portada_url", "")
-            ruleta_magica(titulos, libro["titulo"], portada)
+            ruleta_magica(titulos, libro["titulo"])
             st.balloons()
     
     # Mostrar libro seleccionado
@@ -299,6 +298,7 @@ elif pagina == "👤 Mi Perfil":
 elif pagina == "🏆 Logros":
     st.title("🏆 Mis Logros")
     mostrar_logros(df[df["ultima_lectora"] == perfil].copy())
+
 
 
 
