@@ -217,8 +217,10 @@ def celebrar_logro(mensaje, tipo="lectura"):
 
 # estilos.py - Nueva versión de ruleta_magica con portadas
 
+# estilos.py - Función ruleta_magica SIN portada al final
+
 def ruleta_magica(titulos, ganador, portada_ganador=None):
-    """Ruleta con animación - ahora acepta portada opcional"""
+    """Ruleta con animación - solo muestra título al final"""
     
     placeholder = st.empty()
     
@@ -278,39 +280,8 @@ def ruleta_magica(titulos, ganador, portada_ganador=None):
             """, unsafe_allow_html=True)
         time.sleep(0.25)
     
-    # Fase 4: Revelar ganador CON PORTADA
-    with placeholder.container():
-        st.markdown(f"""
-        <div style='
-            text-align: center;
-            font-size: 28px;
-            background: linear-gradient(135deg, #ff9a9e, #fecfef);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 5px 25px rgba(255,105,180,0.4);
-            color: #333;
-        '>
-            🎉 ¡Esta noche leemos! 🎉
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Mostrar portada si existe
-        if portada_ganador and str(portada_ganador).startswith("http"):
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col2:
-                st.image(portada_ganador, width=200)
-        
-        st.markdown(f"""
-        <div style='
-            text-align: center;
-            font-size: 32px;
-            font-weight: bold;
-            color: #d63384;
-            margin-top: 10px;
-        '>
-            📖 {ganador}
-        </div>
-        """, unsafe_allow_html=True)
+    # Fase 4: Revelar ganador - SOLO TÍTULO, SIN PORTADA
+    placeholder.empty()  # Limpiar el placeholder
 
 # Agregar al final de estilos.py
 
