@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 from sheets import get_df
 from datetime import datetime
-from eleccion_libros import seleccionar_libro, obtener_mensaje_modo
+from estilos import aplicar_tema_infantil, celebrar_logro, ruleta_magica, mostrar_portada
 
 # Importar módulos
 from gamificacion import (
@@ -222,7 +222,12 @@ def pagina_ruleta():
         estrella = "⭐" if es_favorito else ""
         
         with st.container(border=True):
-            st.markdown(f"<h1 style='text-align: center;'>📖</h1>", unsafe_allow_html=True)
+            # Portada centrada
+            col_izq, col_centro, col_der = st.columns([1, 2, 1])
+            with col_centro:
+                portada_url = libro.get("portada_url", "")
+                mostrar_portada(portada_url, ancho=180)
+
             st.markdown(f"<h2 style='text-align: center; color: #d63384;'>{libro['titulo']} {estrella}</h2>", unsafe_allow_html=True)
             
             col_info1, col_info2, col_info3 = st.columns(3)
@@ -292,4 +297,5 @@ elif pagina == "👤 Mi Perfil":
 elif pagina == "🏆 Logros":
     st.title("🏆 Mis Logros")
     mostrar_logros(df[df["ultima_lectora"] == perfil].copy())
+
 
