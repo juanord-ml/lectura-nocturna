@@ -163,7 +163,8 @@ def pagina_ruleta():
     mostrar_widget_racha(df_perfil, perfil)
     
     # Reto semanal
-    mostrar_reto_semanal(df_perfil, perfil)
+    _, sheet = get_df()  # Obtener el sheet
+    reto = mostrar_reto_semanal(df_perfil, perfil, sheet)
     
     # Verificar si hay celebración de reto pendiente
     if st.session_state.reto_recien_completado:
@@ -339,11 +340,12 @@ def pagina_ruleta():
                 if nuevo_logro:
                     st.session_state.nuevo_logro = nuevo_logro
                 
-                # Verificar reto completado
-                reto_nuevo, reto_info = verificar_reto_completado(df_perfil_despues, perfil)
-                if reto_nuevo:
-                    st.session_state.reto_recien_completado = reto_info
-                
+                # Verificar reto completado - ACTUALIZADO
+                reto_actual = st.session_state.get(f"reto_actual_{perfil}")
+                if reto_actual:
+                    reto_nuevo, reto_info = verificar_reto_completado(df_perfil_despues, perfil, reto_actual)
+                    if reto_nuevo:
+                        st.session_state.reto_recien_completado = reto_info            
                 st.session_state.libro_actual = None
                 st.balloons()
                 st.toast("✅ ¡Lectura registrada! 🎉")
@@ -373,3 +375,4 @@ elif pagina == "🏆 Logros":
     st.title("🏆 Mis Logros")
     df_perfil = df[df["ultima_lectora"] == perfil].copy()
     mostrar_logros(df_perfil)
+
