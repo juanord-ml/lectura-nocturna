@@ -101,7 +101,7 @@ if st.button("🎡 Girar la ruleta", use_container_width=True):
                     [df.columns.values.tolist()] +
                     df.astype(str).values.tolist()
                 )
-
+                df, sheet = get_df()
                 st.toast("Favorito guardado")
 
         with col2:
@@ -114,6 +114,7 @@ if st.button("🎡 Girar la ruleta", use_container_width=True):
                     [df.columns.values.tolist()] +
                     df.astype(str).values.tolist()
                 )
+                df, sheet = get_df()
                 st.toast("Lectura registrada")
 
 # ---------------- ESTADÍSTICAS ----------------
@@ -143,5 +144,6 @@ for hija, icono in PERFILES.items():
         .head(5),
         hide_index=True
     )
+
 
 
