@@ -14,8 +14,8 @@ from perfiles import pagina_perfil, inicializar_avatar_state
 from historial import pagina_historial, mostrar_logros
 from estilos import aplicar_tema_infantil, celebrar_logro, ruleta_magica
 
-# NUEVOS IMPORTS
-from sonidos import reproducir_sonido, sonido_celebracion, activar_sonidos, toggle_sonidos
+# Nuevos imports
+from sonidos import activar_sonidos, toggle_sonidos
 from retos import mostrar_reto_semanal, verificar_reto_completado
 
 # ---------------- CONFIG ----------------
@@ -59,79 +59,64 @@ def obtener_sheet():
 
 # ---------------- WIDGET DE RACHA ----------------
 def mostrar_widget_racha(df_perfil, perfil):
-    """Widget motivacional de racha"""
+    """Widget motivacional de racha usando componentes nativos"""
     
     racha = calcular_racha(df_perfil)
     
-    # Configurar mensaje y colores según racha
+    # Configurar mensaje según racha
     if racha == 0:
         mensaje = "¡Hoy es un buen día para leer! 📖"
-        color = "#ffc107"
         emoji_fuego = "💫"
     elif racha == 1:
         mensaje = "¡Empezaste una racha! ¡Sigue mañana!"
-        color = "#ff9800"
         emoji_fuego = "🔥"
     elif racha == 2:
         mensaje = "¡2 días! ¡Vas muy bien!"
-        color = "#ff5722"
         emoji_fuego = "🔥"
     elif racha < 5:
         mensaje = f"¡{racha} días seguidos! ¡Increíble!"
-        color = "#f44336"
         emoji_fuego = "🔥🔥"
     elif racha < 7:
         mensaje = f"¡WOW! ¡{racha} días! ¡Eres una estrella!"
-        color = "#e91e63"
         emoji_fuego = "🔥🔥🔥"
     else:
         mensaje = f"¡{racha} DÍAS! ¡SÚPER LECTORA!"
-        color = "#9c27b0"
         emoji_fuego = "👑🔥👑"
     
-    st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, {color}22, {color}44);
-        border: 3px solid {color};
-        border-radius: 20px;
-        padding: 15px 20px;
-        text-align: center;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 15px {color}33;
-    ">
-        <div style="font-size: 35px; margin-bottom: 5px;">
-            {emoji_fuego}
-        </div>
-        <div style="
-            font-size: 32px; 
-            font-weight: bold; 
-            color: {color};
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-        ">
-            {racha} {'día' if racha == 1 else 'días'}
-        </div>
-        <div style="font-size: 16px; color: #555; margin-top: 5px;">
-            {mensaje}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Usar componentes nativos de Streamlit
+    with st.container():
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.markdown(f"""
+            <div style='text-align: center; 
+                        background: linear-gradient(135deg, #ff69b422, #ff69b444); 
+                        padding: 20px; 
+                        border-radius: 20px;
+                        border: 3px solid #ff69b4;
+                        margin-bottom: 20px;'>
+                <div style='font-size: 40px;'>{emoji_fuego}</div>
+                <div style='font-size: 36px; font-weight: bold; color: #ff69b4;'>{racha} {"día" if racha == 1 else "días"}</div>
+                <div style='font-size: 16px; color: #666;'>{mensaje}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
 
 # ---------------- NAVEGACIÓN SIDEBAR ----------------
 with st.sidebar:
     st.markdown("""
-    <div style="text-align: center; padding: 20px;">
-        <span style="font-size: 60px;">📚</span>
-        <h2 style="color: #ff69b4; margin: 10px 0;">Mis Libros</h2>
+    <div style='text-align: center; padding: 20px;'>
+        <span style='font-size: 60px;'>📚</span>
+        <h2 style='color: #ff69b4; margin: 10px 0;'>Mis Libros</h2>
     </div>
     """, unsafe_allow_html=True)
     
-    # Toggle de sonidos
+    # Toggle de sonidos (visual, sin audio real)
     col_sonido, col_texto = st.columns([1, 3])
     with col_sonido:
         toggle_sonidos()
     with col_texto:
-        st.caption("Sonidos" if st.session_state.sonidos_activos else "Silencio")
+        estado = "🔊 On" if st.session_state.get("sonidos_activos", True) else "🔇 Off"
+        st.caption(estado)
     
     st.divider()
     
@@ -149,7 +134,7 @@ with st.sidebar:
         label_visibility="collapsed"
     )
     
-    # Mostrar mini-stats en sidebar
+    # Mini-stats en sidebar
     df_sidebar = cargar_datos()
     df_perfil_sidebar = df_sidebar[df_sidebar["ultima_lectora"] == perfil]
     
@@ -159,10 +144,10 @@ with st.sidebar:
         
         st.divider()
         st.markdown(f"""
-        <div style="text-align: center; padding: 10px;">
-            <span style="font-size: 35px;">{nivel['icono']}</span><br>
-            <span style="color: #333; font-size: 14px;">Nivel {nivel['nivel']}: {nivel['nombre']}</span><br>
-            <span style="color: #ff5722; font-size: 16px; font-weight: bold;">🔥 {racha} días</span>
+        <div style='text-align: center; padding: 10px;'>
+            <span style='font-size: 35px;'>{nivel["icono"]}</span><br>
+            <span style='color: #333; font-size: 14px;'>Nivel {nivel["nivel"]}: {nivel["nombre"]}</span><br>
+            <span style='color: #ff5722; font-size: 16px; font-weight: bold;'>🔥 {racha} días</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -183,17 +168,15 @@ def pagina_ruleta():
     # Verificar si hay celebración de reto pendiente
     if st.session_state.reto_recien_completado:
         reto = st.session_state.reto_recien_completado
-        celebrar_logro(f"¡Completaste el reto: {reto['nombre']}! 🎉\nPremio: {reto['recompensa']}", "nivel")
-        if activar_sonidos():
-            sonido_celebracion()
+        st.balloons()
+        st.success(f"🎉 ¡Completaste el reto: {reto['nombre']}! Premio: {reto['recompensa']}")
         st.session_state.reto_recien_completado = None
     
     # Mostrar nuevo logro si existe
     if st.session_state.nuevo_logro:
         logro = LOGROS[st.session_state.nuevo_logro]
-        celebrar_logro(f"¡Desbloqueaste: {logro['icono']} {logro['nombre']}!", "nivel")
-        if activar_sonidos():
-            sonido_celebracion()
+        st.balloons()
+        st.success(f"🏆 ¡Desbloqueaste: {logro['icono']} {logro['nombre']}!")
         st.session_state.nuevo_logro = None
     
     st.divider()
@@ -211,7 +194,7 @@ def pagina_ruleta():
             "📚 Modo",
             ["🎡 Sorpresa", "🌙 Cortito", "⭐ Favoritos", "🆕 Nuevos"],
             horizontal=True,
-            help="Sorpresa = cualquier libro, Cortito = menos de 7 min, Favoritos = solo ⭐, Nuevos = nunca leídos"
+            help="Sorpresa=cualquiera, Cortito=<7min, Favoritos=solo ⭐, Nuevos=nunca leídos"
         )
     
     # Configurar filtros según modo
@@ -230,14 +213,14 @@ def pagina_ruleta():
         solo_favoritos = False
         solo_nuevos = True
         modo_key = "nuevos"
-    else:  # Sorpresa
+    else:
         max_duracion = None
         solo_favoritos = False
         solo_nuevos = False
         modo_key = "default"
     
     # Botón de ruleta
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("")
     
     if st.button("🎡 ¡Girar la ruleta!", use_container_width=True):
         cargar_datos.clear()
@@ -259,7 +242,7 @@ def pagina_ruleta():
         else:
             st.session_state.libro_actual = libro.to_dict()
             
-            # Obtener títulos para la animación de ruleta
+            # Obtener títulos para la animación
             df_filtrado = df[
                 (df["edad_min"] <= edad) &
                 (df["edad_max"] >= edad) &
@@ -276,29 +259,21 @@ def pagina_ruleta():
             titulos = df_filtrado["titulo"].tolist()
             
             if len(titulos) < 3:
-                titulos = titulos * 3  # Repetir si hay pocos
-            
-            # Reproducir sonido de ruleta
-            if activar_sonidos():
-                reproducir_sonido("ruleta")
+                titulos = titulos * 3
             
             ruleta_magica(titulos, libro["titulo"])
             st.balloons()
-            
-            # Sonido de éxito
-            if activar_sonidos():
-                reproducir_sonido("exito")
     
     # Mostrar libro seleccionado
     if st.session_state.libro_actual is not None:
         libro = st.session_state.libro_actual
         
-        # Tarjeta del libro
-        es_favorito = libro.get('favorito', False)
+        es_favorito = libro.get("favorito", False)
         estrella = "⭐" if es_favorito else ""
         
+        # Tarjeta del libro
         st.markdown(f"""
-        <div style="
+        <div style='
             background: white;
             border-radius: 25px;
             padding: 30px;
@@ -306,43 +281,16 @@ def pagina_ruleta():
             box-shadow: 0 8px 25px rgba(255,105,180,0.2);
             border: 4px solid #ff69b4;
             text-align: center;
-        ">
-            <div style="font-size: 50px; margin-bottom: 15px;">📖</div>
-            <h2 style="color: #d63384; margin: 10px 0; font-size: 28px;">
-                {libro['titulo']} {estrella}
+        '>
+            <div style='font-size: 50px; margin-bottom: 15px;'>📖</div>
+            <h2 style='color: #d63384; margin: 10px 0; font-size: 28px;'>
+                {libro["titulo"]} {estrella}
             </h2>
-            <div style="
-                display: flex;
-                justify-content: center;
-                gap: 20px;
-                margin: 20px 0;
-                flex-wrap: wrap;
-            ">
-                <span style="
-                    background: #ffe4ec;
-                    padding: 8px 15px;
-                    border-radius: 20px;
-                    color: #333;
-                ">
-                    👧 {PERFILES[perfil]} {perfil}
-                </span>
-                <span style="
-                    background: #e3f2fd;
-                    padding: 8px 15px;
-                    border-radius: 20px;
-                    color: #333;
-                ">
-                    ⏱️ {libro['duracion_min']} min
-                </span>
-                <span style="
-                    background: #f3e5f5;
-                    padding: 8px 15px;
-                    border-radius: 20px;
-                    color: #333;
-                ">
-                    📍 {libro['ubicacion']}
-                </span>
-            </div>
+            <p style='color: #666;'>
+                👧 {PERFILES[perfil]} {perfil} · 
+                ⏱️ {libro["duracion_min"]} min · 
+                📍 {libro["ubicacion"]}
+            </p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -351,9 +299,8 @@ def pagina_ruleta():
         
         with col1:
             btn_fav_text = "💖 ¡Ya es favorito!" if es_favorito else "⭐ ¡Es mi favorito!"
-            btn_fav_disabled = es_favorito
             
-            if st.button(btn_fav_text, key="btn_favorito", use_container_width=True, disabled=btn_fav_disabled):
+            if st.button(btn_fav_text, key="btn_favorito", use_container_width=True, disabled=es_favorito):
                 df_fresh, sheet = get_df()
                 df_fresh.loc[df_fresh["id"] == libro["id"], "favorito"] = True
                 sheet.update(
@@ -361,19 +308,13 @@ def pagina_ruleta():
                     df_fresh.astype(str).values.tolist()
                 )
                 cargar_datos.clear()
-                
-                # Actualizar libro actual
                 st.session_state.libro_actual["favorito"] = True
-                
-                if activar_sonidos():
-                    reproducir_sonido("exito")
-                
                 st.toast("⭐ ¡Favorito guardado!")
                 st.rerun()
         
         with col2:
             if st.button("✅ ¡Lo leímos!", key="btn_leido", use_container_width=True):
-                # Guardar estado anterior para verificar nuevos logros
+                # Guardar estado anterior
                 df_antes, _ = get_df()
                 df_perfil_antes = df_antes[df_antes["ultima_lectora"] == perfil].copy()
                 
@@ -403,21 +344,19 @@ def pagina_ruleta():
                 if reto_nuevo:
                     st.session_state.reto_recien_completado = reto_info
                 
-                if activar_sonidos():
-                    sonido_celebracion()
-                
                 st.session_state.libro_actual = None
+                st.balloons()
                 st.toast("✅ ¡Lectura registrada! 🎉")
                 st.rerun()
         
         # Botón para elegir otro
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("")
         if st.button("🔄 Elegir otro libro", use_container_width=True):
             st.session_state.libro_actual = None
             st.rerun()
 
 
-# ---------------- RENDERIZAR PÁGINA SEGÚN SELECCIÓN ----------------
+# ---------------- RENDERIZAR PÁGINA ----------------
 df = cargar_datos()
 
 if pagina == "🎡 Ruleta":
